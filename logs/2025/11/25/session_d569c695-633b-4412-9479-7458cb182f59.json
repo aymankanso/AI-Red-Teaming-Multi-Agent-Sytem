@@ -1,0 +1,22 @@
+{
+  "session_id": "d569c695-633b-4412-9479-7458cb182f59",
+  "start_time": "2025-11-25T09:04:23.079957",
+  "events": [
+    {
+      "event_type": "user_input",
+      "timestamp": "2025-11-25T09:04:37.287605",
+      "content": "hello"
+    },
+    {
+      "event_type": "user_input",
+      "timestamp": "2025-11-25T09:04:53.274406",
+      "content": "hi"
+    },
+    {
+      "event_type": "user_input",
+      "timestamp": "2025-11-25T09:04:59.274702",
+      "content": "hi"
+    }
+  ],
+  "model": "GPT-4o mini"
+}

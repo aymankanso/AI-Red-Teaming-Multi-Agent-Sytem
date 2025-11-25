@@ -22,11 +22,11 @@ An autonomous AI-powered penetration testing framework using **4 specialized age
 
 ✅ **Multi-Agent Architecture**: 4 specialized agents (Planner, Reconnaissance, Initial Access, Summary)  
 ✅ **36+ Security Tools**: nmap, masscan, nuclei, hydra, sqlmap, msfconsole, and more  
-✅ **Real-time Cost Tracking**: Monitor token usage and API costs per workflow  
-✅ **Observability Dashboard**: Execution traces, agent statistics, performance metrics  
-✅ **Safety Features**: PII redaction, human-in-the-loop, prompt injection defenses  
-✅ **Reliability**: Automatic timeouts, exponential backoff retries, circuit breakers  
+✅ **Streamlit Web Interface**: Modern, responsive UI with real-time agent communication  
+✅ **Session Logging**: Complete conversation replay and audit trail  
+✅ **Model Selection**: Support for multiple LLM providers (OpenAI, Anthropic)  
 ✅ **Memory System**: LangMem for semantic search + InMemorySaver for state persistence  
+✅ **Docker Integration**: Isolated Kali Linux environment for secure tool execution  
 
 ---
 
@@ -270,40 +270,25 @@ streamlit run frontend/streamlit_app.py
 
 ### Advanced Features
 
-#### Cost Tracking
+#### Session Logging & Replay
 ```bash
-# View real-time costs in workflow completion message
-# Metrics include:
-# - Total tokens used
-# - Input/output token breakdown
-# - Estimated cost in USD
-# - Number of LLM calls
+# All conversations are automatically logged
+logs/2025/11/25/session_526114e9-6606-40b8-ab0c-d5bf1d37af97.json
+
+# View session history in Chat History page
+# Replay past conversations
+# Track agent responses and tool executions
 ```
 
-#### Observability Dashboard
+#### Model Selection
 ```bash
-# Generate HTML dashboard
-python -m src.utils.observability.generate_dashboard
+# Switch between multiple LLM providers:
+# - GPT-4o mini
+# - GPT-4o
+# - Claude 3.5 Sonnet
+# - Claude 3 Opus
 
-# Open in browser
-logs/dashboard.html
-
-# Shows:
-# - Workflow success rates
-# - Agent activity statistics
-# - Tool usage and reliability
-# - Execution timeline
-```
-
-#### Human-in-the-Loop Approval
-```
-High-risk tools (msfconsole, sqlmap, hydra) require manual approval:
-
-1. Agent requests permission
-2. UI displays confirmation dialog
-3. User reviews operation details
-4. User approves or rejects
-5. Agent proceeds or cancels
+# Configure in sidebar before initializing swarm
 ```
 
 ---
@@ -438,96 +423,31 @@ Unauthorized use may violate:
 - State and local computer crime laws
 - **Penalties**: Up to 20 years imprisonment + fines
 
-### Safety Features
-
-#### 1. PII Redaction
-Automatically redacts from all outputs:
-- Social Security Numbers (SSN)
-- Credit card numbers
-- Email addresses, phone numbers
-- API keys, passwords, tokens
-- SSH private keys, AWS credentials
-
-#### 2. Human-in-the-Loop
-Manual approval required for:
-- **Critical**: msfconsole, msfvenom (exploitation)
-- **High**: sqlmap, hydra, hashcat (attacks)
-- **Medium**: Auto-approved with logging
-- **Low**: Auto-approved (reconnaissance)
-
-#### 3. Prompt Injection Defenses
-Blocks malicious inputs:
-- Instruction override attempts
-- Role manipulation
-- System prompt extraction
-- Jailbreak attempts
-- Code injection
-
-#### 4. Target Validation
-Checks before execution:
-- Production domain detection
-- Private IP range verification
-- Authorization warnings
-
-#### 5. Audit Logging
-Complete audit trail:
-- All tool executions
-- Approval requests and responses
-- Agent decisions and handoffs
-- Errors and failures
-
 ---
 
 ## 📊 Observability
 
-### Cost Tracking
+### Session Logging
 
-Real-time monitoring of API costs:
+Complete conversation history with:
 
 ```python
-# Automatic tracking includes:
-- Total tokens (input + output)
-- Cost per workflow ($0.05-$1.00 typical)
-- Per-agent token breakdown
-- LLM call latency
+# Automatic session logging to:
+logs/2025/11/25/session_[uuid].json
+
+# Log contents:
+- User inputs
+- Agent responses (Planner, Recon, InitAccess, Summary)
+- Tool executions and outputs
+- Timestamps and metadata
+- Model used (GPT-4o mini, etc.)
 ```
 
-**Export Cost Reports:**
-```bash
-# CSV format
-logs/metrics/cost_report_20251125.csv
-
-# JSON format
-logs/metrics/cost_report_20251125.json
-```
-
-### Execution Traces
-
-Detailed trace logging:
-```python
-logs/traces/2025/11/25/trace_1732567890123.json
-```
-
-**Trace Contents:**
-- Workflow start/end times
-- Agent invocations and responses
-- Tool calls and results
-- Handoff decisions
-- Error events
-
-### Performance Dashboard
-
-Generate HTML dashboard:
-```bash
-python -m src.utils.observability.generate_dashboard
-```
-
-**Dashboard Metrics:**
-- Workflow success rates
-- Agent activity statistics
-- Tool usage and reliability
-- Execution timeline
-- Average latency and costs
+**Access Session History:**
+- Navigate to "Chat History" page in UI
+- Select any previous session
+- View complete conversation replay
+- Export sessions for analysis
 
 ---
 
@@ -676,12 +596,10 @@ DEBUG=1 streamlit run frontend/streamlit_app.py
 
 ### Complete Documentation Set
 
-- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)**: System architecture, agent roles, design rationale
-- **[DESIGN_DECISIONS.md](docs/DESIGN_DECISIONS.md)**: Technical decisions and trade-offs
-- **[API_REFERENCE.md](docs/API_REFERENCE.md)**: Code API documentation (if needed)
-- **Cost Tracking**: Real-time monitoring in `src/utils/metrics/`
-- **Safety Module**: PII redaction, human-in-loop in `src/utils/safety/`
-- **Reliability**: Timeouts, retries in `src/utils/reliability/`
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)**: System architecture, agent roles, design rationale  
+- **Session Logging**: Automatic conversation tracking in `logs/2025/11/25/`  
+- **Agent Implementations**: Source code in `src/agents/swarm/`  
+- **Tool Integration**: MCP protocol implementation in `src/tools/mcp/`
 
 ### Key Components
 
@@ -695,12 +613,11 @@ src/
 ├── graphs/                # LangGraph orchestration
 │   └── swarm.py
 ├── utils/
-│   ├── metrics/           # Cost tracking
-│   ├── observability/     # Trace logging, dashboards
-│   ├── safety/            # PII, human-in-loop, defenses
-│   ├── reliability/       # Timeouts, retries, validation
-│   └── llm/               # Model configuration
-└── tools/                 # MCP tool integration
+│   ├── logging/           # Session logging
+│   ├── llm/               # Model configuration
+│   └── memory/            # State management
+├── tools/                 # MCP tool integration
+└── prompts/               # Agent prompts and personas
 ```
 
 ---

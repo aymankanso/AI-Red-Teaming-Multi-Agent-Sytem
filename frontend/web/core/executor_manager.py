@@ -15,7 +15,14 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
 
 from frontend.web.core.executor import Executor
-from src.utils.logging.logger import get_logger
+
+# Import logger (with graceful fallback)
+try:
+    from src.utils.logging.logger import get_logger
+except ImportError:
+    import logging
+    def get_logger(name=__name__):
+        return logging.getLogger(name)
 
 
 class ExecutorManager:
@@ -137,7 +144,7 @@ class ExecutorManager:
         if "logger" in st.session_state and st.session_state.logger:
             st.session_state.logger.log_user_input(user_input)
         
-        # Execute workflow
+        # Execute workflow - pass config directly as dict
         async for event in self.executor.execute_workflow(user_input, config=config):
             yield event
 

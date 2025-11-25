@@ -190,41 +190,47 @@ def _handle_user_input(messages_area):
     if user_input and not st.session_state.get('workflow_running', False):
         
         async def execute_workflow():
-            # Validate user input
-            validation_result = workflow_handler.validate_execution_state()
-            if not validation_result["can_execute"]:
-                st.error(validation_result["errors"][0] if validation_result["errors"] else "Cannot execute workflow")
-                return
-            
-            # Prepare user message
-            user_message = workflow_handler.prepare_user_input(user_input)
-            
-            # Display user message
-            with messages_area:
-                chat_messages.display_user_message(user_message)
-            
-            # Define UI callback functions
-            ui_callbacks = {
-                "on_message_ready": lambda msg: _display_message_callback(msg, messages_area),
-                "on_terminal_message": _terminal_message_callback,
-                "on_workflow_complete": lambda: None,
-                "on_error": lambda error: st.error(f"Workflow error: {error}")
-            }
-            
-            # Execute workflow - Pass terminal UI directly
-            result = await workflow_handler.execute_workflow_logic(
-                user_input, ui_callbacks, terminal_ui
-            )
-            
-            # Process result
-            if result["success"]:
-                # Refresh sidebar to update agent state
-                # Remove rerun to prevent issues
-                # st.rerun()
-                pass
-            else:
-                if result["error_message"]:
-                    st.error(result["error_message"])
+            try:
+                # Validate user input
+                validation_result = workflow_handler.validate_execution_state()
+                if not validation_result["can_execute"]:
+                    st.error(validation_result["error_message"])
+                    return
+                
+                # Prepare user message
+                user_message = workflow_handler.prepare_user_input(user_input)
+                
+                # Display user message
+                with messages_area:
+                    chat_messages.display_user_message(user_message)
+                
+                # Define UI callback functions
+                ui_callbacks = {
+                    "on_message_ready": lambda msg: _display_message_callback(msg, messages_area),
+                    "on_terminal_message": _terminal_message_callback,
+                    "on_workflow_complete": lambda: None,
+                    "on_error": lambda error: st.error(f"Workflow error: {error}")
+                }
+                
+                # Execute workflow - Pass terminal UI directly
+                result = await workflow_handler.execute_workflow_logic(
+                    user_input, ui_callbacks, terminal_ui
+                )
+                
+                # Process result
+                if result["success"]:
+                    # Refresh sidebar to update agent state
+                    # Remove rerun to prevent issues
+                    # st.rerun()
+                    pass
+                else:
+                    if result["error_message"]:
+                        st.error(result["error_message"])
+                        
+            except Exception as e:
+                st.error(f"❌ Workflow execution failed: {str(e)}")
+                import traceback
+                st.code(traceback.format_exc())
         
         # Use existing event loop or create new one for Windows compatibility
         try:

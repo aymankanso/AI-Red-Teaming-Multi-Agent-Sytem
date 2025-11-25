@@ -1,0 +1,27 @@
+{
+  "session_id": "ac9c0d51-161a-4827-9bb0-df3b8b902595",
+  "start_time": "2025-11-25T11:43:26.016626",
+  "events": [
+    {
+      "event_type": "user_input",
+      "timestamp": "2025-11-25T11:43:34.975813",
+      "content": "hello sir"
+    },
+    {
+      "event_type": "user_input",
+      "timestamp": "2025-11-25T11:43:42.975593",
+      "content": "why you are not responding"
+    },
+    {
+      "event_type": "user_input",
+      "timestamp": "2025-11-25T11:43:47.413250",
+      "content": "please respond"
+    },
+    {
+      "event_type": "user_input",
+      "timestamp": "2025-11-25T11:43:50.309284",
+      "content": "ccv"
+    }
+  ],
+  "model": "GPT-4o mini"
+}

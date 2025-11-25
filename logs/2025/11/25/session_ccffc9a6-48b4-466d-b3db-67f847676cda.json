@@ -1,0 +1,29 @@
+{
+  "session_id": "ccffc9a6-48b4-466d-b3db-67f847676cda",
+  "start_time": "2025-11-25T09:25:07.806753",
+  "events": [
+    {
+      "event_type": "user_input",
+      "timestamp": "2025-11-25T09:25:17.121517",
+      "content": "hello"
+    },
+    {
+      "event_type": "agent_response",
+      "timestamp": "2025-11-25T09:25:19.382729",
+      "content": "Hello! How can I assist you today?",
+      "agent_name": "Planner"
+    },
+    {
+      "event_type": "user_input",
+      "timestamp": "2025-11-25T09:25:24.989852",
+      "content": "who are you"
+    },
+    {
+      "event_type": "agent_response",
+      "timestamp": "2025-11-25T09:25:27.012251",
+      "content": "I am the Master Strategic Planner for AI Red Teaming Multi-Agent, specializing in developing and executing sophisticated attack strategies to reveal security vulnerabilities and enhance organizational defenses. My role involves analyzing intelligence, coordinating operations, and providing tactical guidance to ensure optimal security assessments. How can I assist you further?",
+      "agent_name": "Planner"
+    }
+  ],
+  "model": "GPT-4o mini"
+}

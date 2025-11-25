@@ -1,9 +1,8 @@
 
 import asyncio
 import uuid
-import time
 from datetime import datetime
-from typing import Optional, Dict, Any, AsyncGenerator, Union, List, Tuple
+from typing import Optional, Dict, Any, AsyncGenerator, Tuple
 
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
@@ -19,8 +18,6 @@ from src.utils.message import (
     get_agent_name,
     parse_tool_name
 )
-from src.utils.metrics import get_cost_tracker
-from src.utils.observability import get_trace_logger, TraceEventType
 
 
 class Executor:
@@ -104,7 +101,7 @@ class Executor:
             self._swarm = None
             raise Exception(f"Swarm initialization failed: {str(e)}")
     
-    async def execute_workflow(self, user_input: str, config: Optional[RunnableConfig] = None) -> AsyncGenerator[Dict[str, Any], None]:
+    async def execute_workflow(self, user_input: str, config: Optional[Dict[str, Any]] = None) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Execute workflow
         """
@@ -116,23 +113,10 @@ class Executor:
             raise Exception("Swarm is None - initialization failed")
         
       
-        execution_config: Optional[RunnableConfig] = None
-        if config is not None:
-            execution_config = config
-        else:
-            execution_config = self._config
+        # Use provided config or fallback to instance config
+        execution_config = config if config is not None else self._config
         
-        # Initialize cost tracking
-        cost_tracker = get_cost_tracker()
-        task_id = f"workflow_{int(time.time())}"
-        cost_tracker.start_task(task_id)
-        workflow_start_time = time.time()
-        
-        # Initialize trace logging
-        trace_logger = get_trace_logger()
-        trace_id = trace_logger.start_workflow("red_team_swarm", user_input)
-        
-     
+        # Initialize message ID tracking
         self._processed_message_ids = set()
         
         inputs = {"messages": [HumanMessage(content=user_input)]}
@@ -148,7 +132,7 @@ class Executor:
             )
             
             async for stream_item in stream_result:
-        
+                # Validate stream item is tuple
                 if not isinstance(stream_item, tuple) or len(stream_item) != 2:
                     continue
                     
@@ -159,43 +143,20 @@ class Executor:
                     continue
                     
                 for node, value in output.items():
-                 
+                    # Determine agent name
                     agent_name = get_agent_name(namespace)
                     
-                   
+                    # Process messages
                     if isinstance(value, dict) and "messages" in value and value["messages"]:
                         messages = value["messages"]
                         if messages and isinstance(messages, list):
                             latest_message = messages[-1]
-                            
-                            # Track LLM calls for cost monitoring and tracing
-                            if isinstance(latest_message, AIMessage) and hasattr(latest_message, 'usage_metadata'):
-                                usage = latest_message.usage_metadata
-                                if usage:
-                                    model = getattr(latest_message, 'response_metadata', {}).get('model_name', 'gpt-4o-mini')
-                                    cost_tracker.log_llm_call(
-                                        model=model,
-                                        input_tokens=usage.get("input_tokens", 0),
-                                        output_tokens=usage.get("output_tokens", 0)
-                                    )
-                                    
-                                    # Log agent response in trace
-                                    trace_logger.log_agent_response(
-                                        agent_name=agent_name,
-                                        response=extract_message_content(latest_message),
-                                        metadata={
-                                            "model": model,
-                                            "input_tokens": usage.get("input_tokens", 0),
-                                            "output_tokens": usage.get("output_tokens", 0)
-                                        }
-                                    )
-                            
                             should_display, message_type = self._should_display_message(
                                 latest_message, agent_name, step_count
                             )
                             
                             if should_display:
-                                
+                                # Create event in format frontend can process
                                 event_data = {
                                     "type": "message",
                                     "message_type": message_type,
@@ -207,7 +168,7 @@ class Executor:
                                     "timestamp": datetime.now().isoformat()
                                 }
                                 
-                              
+                                # Add tool info for tool messages
                                 if message_type == "tool":
                                     tool_name = getattr(latest_message, 'name', 'Unknown Tool')
                                     event_data["tool_name"] = tool_name
@@ -215,44 +176,14 @@ class Executor:
                                 
                                 yield event_data
             
-            # End cost tracking and trace logging
-            metrics = cost_tracker.end_task(task_id)
-            workflow_duration = time.time() - workflow_start_time
-            
-            trace = trace_logger.end_workflow(status="completed")
-            
+            # Completion signal
             yield {
                 "type": "workflow_complete",
                 "step_count": step_count,
-                "timestamp": datetime.now().isoformat(),
-                "trace_id": trace_id,
-                "metrics": {
-                    "total_tokens": metrics.total_tokens,
-                    "input_tokens": metrics.total_input_tokens,
-                    "output_tokens": metrics.total_output_tokens,
-                    "total_cost": metrics.total_cost,
-                    "duration": workflow_duration,
-                    "num_llm_calls": len(metrics.llm_calls)
-                }
-            }
-            
-        except asyncio.CancelledError:
-            # Log error in trace
-            trace_logger.log_error("Workflow execution cancelled")
-            trace_logger.end_workflow(status="failed", error="Workflow cancelled")
-            
-            yield {
-                "type": "error",
-                "error": "Workflow execution cancelled",
                 "timestamp": datetime.now().isoformat()
             }
-            raise  
             
         except Exception as e:
-            # Log error in trace
-            trace_logger.log_error(str(e), exception=e)
-            trace_logger.end_workflow(status="failed", error=str(e))
-            
             yield {
                 "type": "error",
                 "error": str(e),

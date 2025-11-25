@@ -72,7 +72,6 @@ def command_execution(command: Annotated[str, "Commands to run on Kali Linux"]) 
             capture_output=True, text=True, encoding="utf-8", errors="ignore", timeout=5
         )
         
-        #
         result = subprocess.run(
             ["docker", "exec", CONTAINER_NAME, "sh", "-c", command],
             capture_output=True, text=True, encoding="utf-8", errors="ignore", timeout=1800  # 30 minutes for full port scans
