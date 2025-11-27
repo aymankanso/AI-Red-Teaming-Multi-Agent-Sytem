@@ -204,6 +204,6 @@ src/
 **System Features**:
 - Multi-agent architecture with clear roles
 - Real-time cost tracking per agent
-- Safety measures (human-in-loop, disclaimers)
+- Safety measures
 - Comprehensive documentation
 
