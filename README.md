@@ -23,7 +23,6 @@ An autonomous AI-powered penetration testing framework using **4 specialized age
 ✅ **Multi-Agent Architecture**: 4 specialized agents (Planner, Reconnaissance, Initial Access, Summary)  
 ✅ **36+ Security Tools**: nmap, masscan, nuclei, hydra, sqlmap, msfconsole, and more  
 ✅ **Streamlit Web Interface**: Modern, responsive UI with real-time agent communication  
-✅ **Session Logging**: Complete conversation replay and audit trail  
 ✅ **Model Selection**: Support for multiple LLM providers (OpenAI, Anthropic)  
 ✅ **Memory System**: LangMem for semantic search + InMemorySaver for state persistence  
 ✅ **Docker Integration**: Isolated Kali Linux environment for secure tool execution  
@@ -39,9 +38,8 @@ An autonomous AI-powered penetration testing framework using **4 specialized age
 5. [Agent Roles](#agent-roles)
 6. [Tool Integration](#tool-integration)
 7. [Safety & Ethics](#safety--ethics)
-8. [Observability](#observability)
-9. [Configuration](#configuration)
-10. [Troubleshooting](#troubleshooting)
+8. [Configuration](#configuration)
+9. [Troubleshooting](#troubleshooting)
 11. [Documentation](#documentation)
 12. [Legal Notice](#legal-notice)
 
@@ -61,27 +59,74 @@ An autonomous AI-powered penetration testing framework using **4 specialized age
 git clone <repository-url>
 cd "agent - Copy (2)"
 
-# 2. Install dependencies
+# 2. Create virtual environment
+python -m venv venv
+
+# 3. Activate virtual environment (Windows)
+.\venv\Scripts\activate
+
+# 4. Install dependencies
 pip install -r requirements.txt
 
-# 3. Configure environment
+# 5. Configure environment
 cp .env.example .env
 # Edit .env and add your OPENAI_API_KEY
 
-# 4. Start Docker container (Kali Linux tools)
+# 6. Start Docker container (Kali Linux tools)
 docker-compose up -d
+```
 
-# 5. Launch application
+### Running the System (Windows PowerShell)
+
+**Option 1: Single Command (Recommended)**
+```powershell
+cd "C:\Users\user\Desktop\test\agent - Copy (2)"
+
+# Start MCP servers and Streamlit in one command
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd 'C:\Users\user\Desktop\test\agent - Copy (2)'; .\venv\Scripts\python.exe src/tools/mcp/Reconnaissance.py"
+Start-Sleep -Seconds 2
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd 'C:\Users\user\Desktop\test\agent - Copy (2)'; .\venv\Scripts\python.exe src/tools/mcp/Initial_Access.py"
+Start-Sleep -Seconds 3
+.\venv\Scripts\python.exe -m streamlit run frontend/streamlit_app.py
+```
+
+**Option 2: Use Launch Script**
+```powershell
+cd "C:\Users\user\Desktop\test\agent - Copy (2)"
+.\run_app.ps1
+```
+
+**Option 3: Manual Start (3 separate terminals)**
+
+Terminal 1 - Reconnaissance MCP Server:
+```powershell
+cd "C:\Users\user\Desktop\test\agent - Copy (2)"
+.\venv\Scripts\activate
+python src/tools/mcp/Reconnaissance.py
+```
+
+Terminal 2 - Initial Access MCP Server:
+```powershell
+cd "C:\Users\user\Desktop\test\agent - Copy (2)"
+.\venv\Scripts\activate
+python src/tools/mcp/Initial_Access.py
+```
+
+Terminal 3 - Streamlit App:
+```powershell
+cd "C:\Users\user\Desktop\test\agent - Copy (2)"
+.\venv\Scripts\activate
 streamlit run frontend/streamlit_app.py
 ```
 
 ### First Run
 
-1. **Read Disclaimer**: Acknowledge legal requirements
-2. **Initialize Swarm**: Click "Initialize Swarm" in sidebar
-3. **Start Testing**: Enter objective (e.g., "Scan 192.168.1.100 for vulnerabilities")
-4. **Approve High-Risk**: Confirm any exploitation attempts when prompted
-5. **Review Results**: Get comprehensive security report
+1. **Open Browser**: Navigate to http://localhost:8501
+2. **Select Model**: Choose GPT-4o mini or other available model
+3. **Read Disclaimer**: Acknowledge legal requirements
+4. **Start Testing**: Enter objective (e.g., "Scan 192.168.1.100 for vulnerabilities")
+5. **Approve High-Risk**: Confirm any exploitation attempts when prompted
+6. **Review Results**: Get comprehensive security report
 
 ---
 
@@ -179,7 +224,7 @@ This system implements a **multi-agent swarm architecture** using LangGraph's pr
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Workflow Executor                             │
 │  • Async Stream Processing  • Message Deduplication             │
-│  • Session Logging  • Event Formatting                          │
+│  • Event Formatting                                              │
 └────────────────────────────┬────────────────────────────────────┘
                              │
                              ▼
@@ -646,63 +691,6 @@ def _should_display_message(self, message, agent_name, step_count):
 
 ---
 
-### 6. Session Management
-
-#### **Session Logging Architecture**
-
-All conversations are automatically logged:
-
-```python
-# Log structure
-logs/
-  2025/
-    11/
-      25/
-        session_526114e9-6606-40b8-ab0c-d5bf1d37af97.json
-```
-
-**Session Log Format:**
-```json
-{
-  "session_id": "526114e9-6606-40b8-ab0c-d5bf1d37af97",
-  "created_at": "2025-11-25T10:30:00Z",
-  "model": {
-    "display_name": "GPT-4o mini",
-    "provider": "openai",
-    "model_name": "gpt-4o-mini"
-  },
-  "events": [
-    {
-      "timestamp": "2025-11-25T10:30:05Z",
-      "type": "user_input",
-      "content": "Scan 192.168.1.100"
-    },
-    {
-      "timestamp": "2025-11-25T10:30:07Z",
-      "type": "agent_response",
-      "agent_name": "Planner",
-      "content": "I'll coordinate reconnaissance...",
-      "step_count": 1
-    },
-    {
-      "timestamp": "2025-11-25T10:30:10Z",
-      "type": "tool_execution",
-      "agent_name": "Reconnaissance",
-      "tool_name": "nmap",
-      "content": "Starting Nmap 7.95...",
-      "step_count": 3
-    }
-  ]
-}
-```
-
-**Session Replay:**
-- Users can replay any past session in Chat History page
-- Full conversation reconstructed from log
-- Useful for audit trails and analysis
-
----
-
 ### Multi-Agent Design Rationale
 
 **Why Multi-Agent Architecture?**
@@ -775,16 +763,6 @@ streamlit run frontend/streamlit_app.py
 ```
 
 ### Advanced Features
-
-#### Session Logging & Replay
-```bash
-# All conversations are automatically logged
-logs/2025/11/25/session_526114e9-6606-40b8-ab0c-d5bf1d37af97.json
-
-# View session history in Chat History page
-# Replay past conversations
-# Track agent responses and tool executions
-```
 
 #### Model Selection
 ```bash
@@ -1492,32 +1470,6 @@ Unauthorized use may violate:
 
 ---
 
-## 📊 Observability
-
-### Session Logging
-
-Complete conversation history with:
-
-```python
-# Automatic session logging to:
-logs/2025/11/25/session_[uuid].json
-
-# Log contents:
-- User inputs
-- Agent responses (Planner, Recon, InitAccess, Summary)
-- Tool executions and outputs
-- Timestamps and metadata
-- Model used (GPT-4o mini, etc.)
-```
-
-**Access Session History:**
-- Navigate to "Chat History" page in UI
-- Select any previous session
-- View complete conversation replay
-- Export sessions for analysis
-
----
-
 ## ⚙️ Configuration
 
 ### Environment Variables
@@ -1529,10 +1481,6 @@ logs/2025/11/25/session_[uuid].json
 OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-4o-mini
 OPENAI_TEMPERATURE=0
-
-# Logging
-LOG_LEVEL=INFO
-LOG_DIR=logs
 
 # Docker
 DOCKER_CONTAINER=kali-tools
@@ -1618,9 +1566,6 @@ tail -f logs/app.log
 # Increase Docker memory
 # Docker Desktop → Settings → Resources → Memory: 8GB
 
-# Clear old logs
-rm -rf logs/traces/2025/11/[old-dates]
-
 # Reset session
 # Click "Reset Conversation" in UI
 ```
@@ -1651,8 +1596,7 @@ DEBUG=1 streamlit run frontend/streamlit_app.py
 ### Getting Help
 
 1. Check [docs/](docs/) directory for detailed documentation
-2. Review logs in `logs/app.log`
-3. Generate diagnostic report:
+2. Generate diagnostic report:
    ```bash
    python -m src.utils.diagnostics.generate_report
    ```
@@ -1664,7 +1608,6 @@ DEBUG=1 streamlit run frontend/streamlit_app.py
 ### Complete Documentation Set
 
 - **[ARCHITECTURE.md](docs/ARCHITECTURE.md)**: System architecture, agent roles, design rationale  
-- **Session Logging**: Automatic conversation tracking in `logs/2025/11/25/`  
 - **Agent Implementations**: Source code in `src/agents/swarm/`  
 - **Tool Integration**: MCP protocol implementation in `src/tools/mcp/`
 
@@ -1680,7 +1623,6 @@ src/
 ├── graphs/                # LangGraph orchestration
 │   └── swarm.py
 ├── utils/
-│   ├── logging/           # Session logging
 │   ├── llm/               # Model configuration
 │   └── memory/            # State management
 ├── tools/                 # MCP tool integration
@@ -1744,7 +1686,7 @@ Professional security testing must adhere to:
 
 This system is optimized for academic evaluation with:
 - ✅ Multi-agent architecture with clear roles
-- ✅ Comprehensive observability (traces, metrics, dashboards)
+- ✅ Real-time cost tracking per agent
 - ✅ Robust reliability features (timeouts, retries, circuit breakers)
 - ✅ Safety measures (PII redaction, human-in-loop, disclaimers)
 - ✅ Detailed documentation and design rationale
