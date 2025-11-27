@@ -94,6 +94,7 @@ def get_agent_name(namespace):
         namespace_str = namespace[0]
         if ':' in namespace_str:
             return namespace_str.split(':')[0]
+        return namespace_str
     
     return "Unknown"
 

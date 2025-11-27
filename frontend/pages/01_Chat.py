@@ -30,7 +30,7 @@ from frontend.web.utils.float import float_init
 
 from frontend.web.components.chat_messages import ChatMessagesComponent
 from frontend.web.components.terminal_ui import TerminalUIComponent
-from frontend.web.components.sidebar import SidebarComponent
+from frontend.web.components.sidebar_component import SidebarComponent
 from frontend.web.components.theme_ui import ThemeUIComponent
 
 from frontend.web.core.app_state import get_app_state_manager
@@ -127,7 +127,8 @@ def _setup_sidebar():
         completed_agents=completed_agents,
         session_stats=session_stats,
         debug_info=debug_info,
-        callbacks=callbacks
+        callbacks=callbacks,
+        executor_manager=executor_manager
     )
 
 

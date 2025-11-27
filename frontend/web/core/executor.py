@@ -1,6 +1,7 @@
 
 import asyncio
 import uuid
+import time
 from datetime import datetime
 from typing import Optional, Dict, Any, AsyncGenerator, Tuple
 
@@ -18,6 +19,7 @@ from src.utils.message import (
     get_agent_name,
     parse_tool_name
 )
+from src.utils.metrics.cost_tracker import get_cost_tracker
 
 
 class Executor:
@@ -30,6 +32,7 @@ class Executor:
         self._current_model = None
         self._current_llm = None
         self._processed_message_ids = set()
+        self._cost_tracker = get_cost_tracker()
     
     @property
     def swarm(self):
@@ -156,6 +159,10 @@ class Executor:
                             )
                             
                             if should_display:
+                                # Track AI message costs
+                                if message_type == "ai":
+                                    self._track_message_cost(latest_message, agent_name)
+                                
                                 # Create event in format frontend can process
                                 event_data = {
                                     "type": "message",
@@ -195,9 +202,10 @@ class Executor:
         
         message_id = getattr(message, 'id', None)
         if not message_id:
-            content = extract_message_content(message)
-          
-            message_id = f"{agent_name}_{hash(str(content))}"
+            # If no ID, generate a unique ID to ensure we display the message
+            # We trust that the stream and messages[-1] logic gives us the correct new message
+            # Using content hash caused issues with duplicate messages (e.g. "hello" -> "hello")
+            message_id = f"{agent_name}_{uuid.uuid4()}"
         
       
         if isinstance(message, HumanMessage):
@@ -219,6 +227,48 @@ class Executor:
             return False, None
         
         return False, None
+    
+    def _track_message_cost(self, message: AIMessage, agent_name: str):
+        """Track cost for an AI message"""
+        try:
+            # Extract token usage from message
+            usage_metadata = getattr(message, 'usage_metadata', None)
+            
+            # Fallback to response_metadata if usage_metadata is missing
+            if not usage_metadata and hasattr(message, 'response_metadata'):
+                usage_metadata = message.response_metadata.get('token_usage') or message.response_metadata.get('usage')
+            
+            if not usage_metadata:
+                return
+            
+            # Handle both object and dict access
+            if isinstance(usage_metadata, dict):
+                input_tokens = usage_metadata.get('input_tokens', 0)
+                output_tokens = usage_metadata.get('output_tokens', 0)
+            else:
+                input_tokens = getattr(usage_metadata, 'input_tokens', 0)
+                output_tokens = getattr(usage_metadata, 'output_tokens', 0)
+            
+            if input_tokens == 0 and output_tokens == 0:
+                return
+            
+            # Get current model info
+            model_info = self.get_current_model_info()
+            
+            # Track the call
+            self._cost_tracker.track_call(
+                session_id=self._thread_id or "unknown",
+                agent_name=agent_name,
+                model=model_info['model_name'],
+                provider=model_info['provider'],
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                latency_ms=0.0  # TODO: Add latency tracking if needed
+            )
+        except Exception as e:
+            # Log error but don't fail workflow
+            print(f"Cost tracking error: {str(e)}")
+            pass
     
     def get_current_model_info(self) -> Dict[str, str]:
         """Return current model info"""
@@ -276,9 +326,22 @@ class Executor:
     
     def get_state_dict(self) -> Dict[str, Any]:
         """Return state as dictionary (for session saving)"""
+        session_cost = self._cost_tracker.get_session_cost(self._thread_id) if self._thread_id else None
+        
         return {
             "initialized": self._initialized,
             "thread_id": self._thread_id,
             "current_model": self._current_model,
-            "has_swarm": self._swarm is not None
+            "has_swarm": self._swarm is not None,
+            "session_cost": session_cost
         }
+    
+    def get_session_metrics(self) -> Optional[Dict]:
+        """Get cost metrics for current session"""
+        if not self._thread_id:
+            return None
+        return self._cost_tracker.get_session_cost(self._thread_id)
+    
+    def get_cost_summary(self) -> Dict:
+        """Get overall cost summary across all sessions"""
+        return self._cost_tracker.generate_summary()
