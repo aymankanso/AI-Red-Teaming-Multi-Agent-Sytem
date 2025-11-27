@@ -197,14 +197,6 @@ src/
 
 ---
 
-## 🔒 Safety & Ethics
-
-**AUTHORIZED TESTING ONLY** - You must have written authorization before testing any system.
-
-- ✅ Test only in controlled lab environments or systems you own
-- ✅ Obtain formal penetration testing engagement authorization
----
-
 ## Project
 
 **Objective**: Demonstrate automation of penetration testing tasks
