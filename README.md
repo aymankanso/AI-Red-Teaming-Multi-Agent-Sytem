@@ -2,14 +2,12 @@
 
 An autonomous AI-powered penetration testing framework using **4 specialized agents** coordinated through **LangGraph**. Automates reconnaissance, vulnerability assessment, exploitation planning, and reporting phases of security assessments.
 
-> ⚠️ **LEGAL DISCLAIMER**: For **AUTHORIZED SECURITY TESTING ONLY**. Unauthorized access is **ILLEGAL** under CFAA and international laws.
-
 ---
 
 ## 🎯 Key Features
 
 - **Multi-Agent Architecture**: 4 specialized agents (Planner, Reconnaissance, Initial Access, Summary)
-- **36+ Security Tools**: nmap, masscan, nuclei, hydra, sqlmap, msfconsole, and more
+- **Security Tools**: nmap, masscan, nuclei, hydra, sqlmap, msfconsole, and more
 - **Streamlit Web Interface**: Real-time agent communication display
 - **Model Selection**: Support for OpenAI and Anthropic models
 - **Memory System**: LangMem for semantic search + InMemorySaver for state
