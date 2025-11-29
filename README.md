@@ -8,7 +8,7 @@ An autonomous AI-powered penetration testing framework using **4 specialized age
 
 - **Multi-Agent Architecture**: 4 specialized agents (Planner, Reconnaissance, Initial Access, Summary)
 - **Security Tools**: nmap, masscan, nuclei, hydra, sqlmap, msfconsole, and more
-- **Streamlit Web Interface**: Real-time agent communication display
+- **Streamlit Web Interface**: Real-time agent communication display and **Chat History Replay**
 - **Model Selection**: Support for OpenAI and Anthropic models
 - **Memory System**: LangMem for semantic search + InMemorySaver for state
 - **Docker Integration**: Isolated Kali Linux environment for tool execution
@@ -20,7 +20,7 @@ An autonomous AI-powered penetration testing framework using **4 specialized age
 ### Prerequisites
 - Python 3.12+
 - Docker Desktop
-- OpenAI API Key or Anthropic API Key
+- OpenAI API Key
 
 ### Installation
 
@@ -75,6 +75,8 @@ streamlit run frontend/streamlit_app.py
 ```
 
 **Open Browser**: http://localhost:8501
+
+> **Note for Evaluators**: You can view past conversation logs and replay sessions by navigating to the **Chat History** page from the sidebar in the Streamlit interface.
 
 ---
 
