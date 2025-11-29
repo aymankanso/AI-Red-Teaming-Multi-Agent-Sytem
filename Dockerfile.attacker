@@ -1,7 +1,15 @@
 FROM kalilinux/kali-rolling
 
-# Update package lists and install essential tools + Phase 1 + Metasploit + Tier 1 Power Tools
-RUN apt-get update && apt-get install -y \
+# Fix package sources and update with retry logic
+RUN echo "deb http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
+    echo "deb-src http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware" >> /etc/apt/sources.list
+
+# Update package lists with retries
+RUN apt-get clean && \
+    apt-get update --fix-missing || apt-get update --fix-missing || apt-get update
+
+# Install core tools first (most reliable packages)
+RUN apt-get install -y --fix-missing \
     python3 \
     python3-pip \
     curl \
@@ -9,31 +17,73 @@ RUN apt-get update && apt-get install -y \
     nmap \
     dnsutils \
     whois \
-    hydra \
+    netcat-traditional \
     exploitdb \
+    && apt-get clean
+
+# Install security tools (may have some failures but continue)
+RUN apt-get install -y --fix-missing --no-install-recommends \
+    hydra \
     nikto \
     gobuster \
     sqlmap \
     masscan \
-    subfinder \
     whatweb \
-    netcat-traditional \
-    metasploit-framework \
     nuclei \
-    crackmapexec \
+    ffuf \
+    wafw00f \
+    || true
+
+# Install Metasploit and related tools separately
+RUN apt-get install -y --fix-missing \
+    metasploit-framework \
+    || echo "Metasploit installation failed, continuing..."
+
+# Install Impacket tools separately
+RUN apt-get install -y --fix-missing \
     python3-impacket \
     impacket-scripts \
-    ffuf \
+    || echo "Impacket installation failed, continuing..."
+
+# Install additional tools that might fail
+RUN apt-get install -y --fix-missing \
+    crackmapexec \
+    subfinder \
     amass \
     john \
-    wafw00f \
-    && rm -rf /var/lib/apt/lists/*
+    || echo "Some additional tools failed to install, continuing..."
 
-# Initialize Metasploit database
-RUN msfdb init || true
+# Clean up
+RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
-# Update nuclei templates
-RUN nuclei -update-templates || true
+# Install missing tools via alternative methods if needed
+RUN if ! command -v subfinder &> /dev/null; then \
+        wget -q https://github.com/projectdiscovery/subfinder/releases/latest/download/subfinder_2.6.6_linux_amd64.zip -O /tmp/subfinder.zip && \
+        unzip -q /tmp/subfinder.zip -d /tmp/ && \
+        mv /tmp/subfinder /usr/local/bin/ && \
+        chmod +x /usr/local/bin/subfinder && \
+        rm /tmp/subfinder.zip || true; \
+    fi
+
+RUN if ! command -v nuclei &> /dev/null; then \
+        wget -q https://github.com/projectdiscovery/nuclei/releases/latest/download/nuclei_3.3.7_linux_amd64.zip -O /tmp/nuclei.zip && \
+        unzip -q /tmp/nuclei.zip -d /tmp/ && \
+        mv /tmp/nuclei /usr/local/bin/ && \
+        chmod +x /usr/local/bin/nuclei && \
+        rm /tmp/nuclei.zip || true; \
+    fi
+
+# Initialize Metasploit database (if installed)
+RUN if command -v msfdb &> /dev/null; then msfdb init || true; fi
+
+# Update nuclei templates (if nuclei is available)
+RUN if command -v nuclei &> /dev/null; then nuclei -update-templates || true; fi
+
+# Create necessary directories and copy wordlists
+RUN mkdir -p /root/data/wordlist
+
+# Copy wordlists
+COPY data/wordlist/ /root/data/wordlist/
 
 # Set working directory
 WORKDIR /root

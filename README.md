@@ -18,7 +18,7 @@ An autonomous AI-powered penetration testing framework using **4 specialized age
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.11+
+- Python 3.12+
 - Docker Desktop
 - OpenAI API Key or Anthropic API Key
 
@@ -47,13 +47,21 @@ docker-compose up -d
 
 ### Running the System
 
-**Option 1: Single Command (Windows PowerShell)**
+**Option 1: Using PowerShell Script (Recommended)**
 ```powershell
-# Use the provided PowerShell script
+# Activate virtual environment first
+.\venv\Scripts\Activate
+
+# Run the startup script
 .\run_app.ps1
 ```
 
-**Option 2: Manual (3 terminals)**
+**Option 2: Single Command (Windows PowerShell)**
+```powershell
+Start-Process powershell -ArgumentList "-NoExit", "-Command", ".\venv\Scripts\python.exe src/tools/mcp/Reconnaissance.py" ; Start-Sleep -Seconds 2 ; Start-Process powershell -ArgumentList "-NoExit", "-Command", ".\venv\Scripts\python.exe src/tools/mcp/Initial_Access.py" ; Start-Sleep -Seconds 3 ; .\venv\Scripts\python.exe -m streamlit run frontend/streamlit_app.py
+```
+
+**Option 3: Manual (3 terminals)**
 
 ```powershell
 # Terminal 1 - Reconnaissance MCP Server
@@ -67,13 +75,6 @@ streamlit run frontend/streamlit_app.py
 ```
 
 **Open Browser**: http://localhost:8501
-
-### First Run
-1. Select your model (GPT-4o mini recommended)
-2. Read and acknowledge the legal disclaimer
-3. Enter your objective (e.g., "Scan 192.168.1.100 for vulnerabilities")
-4. Approve any high-risk operations when prompted
-5. Review the generated security report
 
 ---
 
