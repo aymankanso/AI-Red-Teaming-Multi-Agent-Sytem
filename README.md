@@ -22,6 +22,8 @@ An autonomous AI-powered penetration testing framework using **4 specialized age
 - Docker Desktop
 - OpenAI API Key
 
+> **⚠️ IMPORTANT**: This project requires **Python 3.12** or newer. Older versions (e.g., Python 3.9) are **NOT** supported due to syntax dependencies (e.g., `match` statements). Please ensure you are using the correct Python version when creating your virtual environment.
+
 ### Installation
 
 ```bash
