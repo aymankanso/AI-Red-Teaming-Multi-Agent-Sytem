@@ -166,9 +166,6 @@ streamlit run frontend/streamlit_app.py
 ```bash
 # .env file (copy from .env.example)
 OPENAI_API_KEY=your_openai_api_key_here
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
-LANGGRAPH_TRACING_V2=false
-LOG_LEVEL=INFO
 ```
 
 ### Project Structure
@@ -210,6 +207,12 @@ src/
 - Docker-based isolation for security tools
 - MCP (Model Context Protocol) integration for tool communication
 - LangGraph orchestration for complex workflows
+
+### 🧪 Tested Environments
+The system has been successfully tested on various targets, including:
+- **Metasploitable 2**: Verified full exploitation chain capabilities.
+- **Docker Containers**: Tested against isolated vulnerable services.
+- **Simulated Networks**: Validated discovery and enumeration features.
 
 ---
 
